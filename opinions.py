@@ -1,64 +1,72 @@
+# Naive implementation of the opinion game. For now, agents are totally connected.
 from mesa import Agent, Model
-from mesa.time import StagedActivation
+from mesa.time import SimultaneousActivation
 from mesa.datacollection import DataCollector
 import numpy as np
 import random
 
+ALPHA = .01 #TEMPORARY, in the future ALPHA should be able to be passed by the user & varied. Recall alpha measures learning rate.
+def potential_prime(diff):
+    '''
+    Tent function potential, tip at .5
+    '''
+    if(diff < .5):
+        return 1
+    elif(diff > .5):
+        return -1
+    else:
+        return 0
+
+
 class OpinionAgent(Agent):
-    """ An agent with random initial opinion."""
+    '''
+    An agent has an opinion, and is inlfuenced by other agent's opinions based off a potential energy function. For now, initial opinion of an agent is random
+    '''
     def __init__(self, unique_id, model):
-        super().__init__(unique_id, model)
-        self.opinion = np.random.rand()
-        self.didInteract = False
-
-    def reset(self):
-        self.didInteract = False
-
+        super().__init__(unique_id, model) # sets self.model
+        self.opinion = np.random.rand() #From 0 to 1
+        self.nextOpinion = None
+    
     def step(self):
-        if self.didInteract:
-            return
+        '''
+        Calculates next opinion based off of all other agent's opinions. Models a totally connected graph.
+        o_i^(t+1) = o_i^t + sum(j = 1 to k, (- alpha / 2) * potential'(|diff|) * diff/ |diff| is the formula for the  next opinion from the paper. 
+        '''
+        # self.model.schedule.agents is a list containing all other agents.
+        self.nextOpinion = self.opinion
+        
+        # This calculates the next opinion based off the formula
+        for other in self.model.schedule.agents[:]:
+            difference = self.opinion - other.opinion
+            if difference == 0: #Don't calculate for the same node. Unsure what to do if there are other nodes of the same opinion, probably doesn't matter at this point
+                pass;
+            else:
+                self.nextOpinion += ((-1) * ALPHA / 2) * potential_prime(abs(difference)) * (difference / abs(difference))
 
-        self.didInteract = True
+        # Clamp function
+        if self.nextOpinion > 1:
+            self.nextOpinion = 1
+        elif self.nextOpinion < 0:
+            self.nextOpinion = 0
+        
 
-        indices = list(range(self.model.num_agents))
-        random.shuffle(indices)
-
-        for i in indices:
-            other_agent = self.model.schedule.agents[i]
-            if other_agent.unique_id == self.unique_id:
-                continue
-            if other_agent.didInteract:
-                continue
-            break
-        else:
-            # nobody to interact with. :-(
-            self.didInteract = True
-            return
-
-        delt = self.opinion - other_agent.opinion
-        adelt = np.abs(delt)
-
-        new_opinion = self.opinion - (adelt/100.0) * (adelt/delt)
-        new_other = other_agent.opinion + (adelt/100.0) * (adelt/delt)
-
-        self.opinion = new_opinion
-        other_agent.opinion = new_other
+    def advance(self):
+        self.opinion = self.nextOpinion
+        self.nextOpinion = None
 
 class OpinionModel(Model):
-    """A model with some number of agents."""
+    '''A model with some number of agents'''
     def __init__(self, N):
         self.num_agents = N
-        self.schedule = StagedActivation(self, stage_list=["reset","step"], shuffle=True)
-        # Create agents
+        self.schedule = SimultaneousActivation(self)
+        #Create agents
         for i in range(self.num_agents):
             a = OpinionAgent(i, self)
             self.schedule.add(a)
-        
         self.datacollector = DataCollector(
-            agent_reporters = {"Opinion": lambda a: a.opinion}
+                agent_reporters = {"Opinion": lambda a: a.opinion}
         )
-
     def step(self):
-        '''Advance the model by one step.'''
+        '''Advance the model one step'''
         self.datacollector.collect(self)
         self.schedule.step()
