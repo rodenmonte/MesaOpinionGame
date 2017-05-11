@@ -6,7 +6,17 @@ from math import e
 from math import pow
 from math import sqrt
 from math import pi
-def tent(tau_l=.5, tau_u=.5): 
+def tent(tau_l=.5, tau_u=None): 
+    #If only one tent peak is wanted
+    if(tau_u == None):
+        tau_u = tau_l
+    #This case arises if the funciton is not properly initialized
+    #The fix just switches the points of the plateau
+    elif(tau_u > tau_l):
+        temp = tau_u
+        tau_u = tau_l
+        tau_l = temp
+
     def impl(diff):
         if(diff < tau_l): #Left half of the potential function.
             return -1 * (1 / tau_l) #Rise over run, times -1, because its a potential function.
@@ -17,8 +27,11 @@ def tent(tau_l=.5, tau_u=.5):
     return impl
 
 def bcm(tau):
+    '''
+    As in 3.5.4 of the paper.
+    '''
     def impl(diff):
-        if(diff < tau):
+        if(diff <= tau):
             return 2 * diff
         else:
             return 0

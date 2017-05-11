@@ -29,6 +29,11 @@ def degree_connected(N, degree):
     '''
     neighborhood = []
     max_connections = N * (N - 1)
+    #The name total_connections is a lie
+    #In this implementation, the actual number of total
+    #connections is less than or equal to total_connections
+    #But current_connections can be used to make sure
+    #total_connections is met, in the future.
     total_connections = int(degree * max_connections)
     average_connections = int(total_connections / N)
     current_connections = 0
@@ -46,3 +51,9 @@ def degree_connected(N, degree):
         neighborhood.append(neighbors)
         current_connections += average_connections
     return neighborhood
+
+#TODO cluster_connected
+#Takes 3 parameters, N, degree, and n_clusters
+#degree is the degree of connection BETWEEN CLUSTERS.
+#n_clusters is the number of clusters.
+#Perhaps it is as easy as a combination of the previous two methods?
