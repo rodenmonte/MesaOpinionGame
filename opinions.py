@@ -88,5 +88,13 @@ class OpinionModel(Model):
         '''Advance the model one step'''
         self.datacollector.collect(self)
         self.schedule.step()
+
     def makeLam(self, i):
+    '''
+    Don't use outside of the context of the OpinionModel's init method.
+    This function is needed in order for the DataCollector to work properly,
+    intializing the lambdas inside __init__ inside a for loop causes the last
+    value of the iterator to be used for all of the functions, causing unwanted
+    behavior. So that's why this function exists.
+    '''
         return lambda a: a.opinions[i];
