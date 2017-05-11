@@ -77,16 +77,17 @@ class OpinionModel(Model):
     around this, given how the data collector must be initialized
     for multiple opinions.
     '''
-    def __init__(self, N, neighborhoods):
+    def __init__(self, N, neighborhoods, initial_opinions):
         self.num_agents = N
         self.neighborhoods = neighborhoods
+        self.initial_opinions = initial_opinions
         self.schedule = SimultaneousActivation(self)
         #Create agents
         for i in range(self.num_agents):
             #TODO Remove below 2 comments, after new neighborhood method works.
             #neighbors = [random.randint(0, N-1) for i in range((N + 3) // 4)]
             #neighbors = [i for i in range(N)]
-            a_params = OpinionParameters(i, self, self.neighborhoods[i], potentials.tent(.5), [np.random.rand(), .4])
+            a_params = OpinionParameters(i, self, self.neighborhoods[i], potentials.tent(.5), initial_opinions[i])
             a = OpinionAgent(a_params)
             self.schedule.add(a)
 
