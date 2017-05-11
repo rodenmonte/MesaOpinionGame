@@ -63,7 +63,13 @@ class OpinionAgent(Agent):
             #We don't need to change nextOpinion[i], it is inconsequential. We could make it None so that exceptions would be raised if it was attempted to be used or hadn't been set. 
 
 class OpinionModel(Model):
-    '''A model with some number of agents
+    '''
+    A model with some number of agents
+
+    Keyword arguments:
+    N -- Number of agents
+    neighborhoods -- An NxN matrix.
+    neighborhoods[n] is agent n's list of neighbors.
     LIMITATION: Every agent has the same number of opinions,
     although an agent can be such that all other agents take
     no stake in its opinion, and its potential function is such
@@ -71,14 +77,16 @@ class OpinionModel(Model):
     around this, given how the data collector must be initialized
     for multiple opinions.
     '''
-    def __init__(self, N):
+    def __init__(self, N, neighborhoods):
         self.num_agents = N
+        self.neighborhoods = neighborhoods
         self.schedule = SimultaneousActivation(self)
         #Create agents
         for i in range(self.num_agents):
+            #TODO Remove below 2 comments, after new neighborhood method works.
             #neighbors = [random.randint(0, N-1) for i in range((N + 3) // 4)]
-            neighbors = [i for i in range(N)]
-            a_params = OpinionParameters(i, self, neighbors, potentials.tent(.5), [np.random.rand(), .4])
+            #neighbors = [i for i in range(N)]
+            a_params = OpinionParameters(i, self, self.neighborhoods[i], potentials.tent(.5), [np.random.rand(), .4])
             a = OpinionAgent(a_params)
             self.schedule.add(a)
 
