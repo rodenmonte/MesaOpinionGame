@@ -104,6 +104,10 @@ class OpinionModel(Model):
         self.datacollector.collect(self)
         self.schedule.step()
 
+    def run(self, steps):
+        for i in range(steps):
+            self.step()
+
     def makeLam(self, i):
         '''
         Don't use outside of the context of the OpinionModel's init method.
