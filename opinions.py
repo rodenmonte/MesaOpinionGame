@@ -7,7 +7,7 @@ import numpy as np
 #import random
 import potentials
 
-ALPHA = .001 #Temp
+#ALPHA = .001 #Temp
 
 class OpinionParameters():
     '''
@@ -51,7 +51,7 @@ class OpinionAgent(Agent):
                     pass
                 else:
                     #The negative is in the potential function now.
-                    self.nextOpinion[i] += (ALPHA / 2) * self.potential(abs(difference)) * (difference / abs(difference))
+                    self.nextOpinion[i] += (self.model.ALPHA / 2) * self.potential(abs(difference)) * (difference / abs(difference))
                 # Clamp function
                 if self.nextOpinion[i] > 1:
                     self.nextOpinion[i] = 1
@@ -78,6 +78,7 @@ class OpinionModel(Model):
     for multiple opinions.
     '''
     def __init__(self, N, neighborhoods, initial_opinions):
+        self.ALPHA = .001
         self.num_agents = N
         self.neighborhoods = neighborhoods
         self.initial_opinions = initial_opinions
