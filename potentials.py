@@ -94,3 +94,17 @@ def french():
         else:
             return -1 * agent2.opinions[i] / (k + 1)
     return impl
+
+def degroot(P):
+    '''
+    Returns a potential function.
+    P -- NxN matrix of "weights". 
+    '''
+    def impl(agent1, agent2, i):
+        a1uid = agent1.unique_id
+        a2uid = agent2.unique_id
+        if(a1uid == a2uid):
+            return (-1 / 2) * (P[a1uid][a1uid] - 1) * agent1.opinions[i]
+        else:
+            return -1 * P[a1uid][a2uid] * agent2.opinions[i]
+    return impl
