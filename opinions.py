@@ -1,13 +1,8 @@
-# Naive implementation of the opinion game.
-#For now, agents are totally connected.
 from mesa import Agent, Model
 from mesa.time import SimultaneousActivation
 from mesa.datacollection import DataCollector
 import numpy as np
-#import random
 import potentials
-
-#ALPHA = .001 #Temp
 
 class OpinionParameters():
     '''
@@ -21,7 +16,6 @@ class OpinionParameters():
         self.neighbors = neighbors
         self.potential = potential
         self.opinions = opinions
-
 
 class OpinionAgent(Agent):
     '''
@@ -51,7 +45,7 @@ class OpinionAgent(Agent):
                     pass
                 else:
                     #The negative is in the potential function now.
-                    self.nextOpinion[i] += (self.model.ALPHA / 2) * self.potential(self.opinions[i], self.model.schedule.agents[other].opinions[i]) * (difference / abs(difference))
+                    self.nextOpinion[i] += (self.model.ALPHA / 2) * self.potential(self, self.model.schedule.agents[other], i) * (difference / abs(difference))
                 # Clamp function
                 if self.nextOpinion[i] > 1:
                     self.nextOpinion[i] = 1
@@ -114,7 +108,7 @@ class OpinionModel(Model):
         Don't use outside of the context of the OpinionModel's init method.
         This function is needed in order for the DataCollector to work properly,
         intializing the lambdas inside __init__ inside a for loop causes the last
-        value of the iterator to be used for all of the functions, causing unwanted
-        behavior. So that's why this function exists.
+        value of the iterator to be used for all of the functions, causing
+        unwanted behavior. So that's why this function exists.
         '''
         return lambda a: a.opinions[i]
