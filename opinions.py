@@ -7,8 +7,12 @@ import potentials
 class OpinionParameters():
     '''
     For organizational purposes
-    #Neighbors is an array. If no argument is given for neighbors, then it is assumed that the graph is totally connected. TODO: Implement ways to easily make pairwise graphs, varying degrees of connectedness in graphs, etc. These ways can be based solely on the size of the array.
-    #Potentials can be an array. len(potentials) == len(neighbors). Otherwise, potenials should be one function. If it is left out, a tent function tau = .5 is defaulted to.
+
+    Keyword arguments:
+    unique_id -- Integers between 0 an N - 1, where N is the total number of agents in a model.
+    model -- An instance of OpinionModel.
+    neighbors -- A 2d array, size NxAny, use neighbors.py to generate.
+    potential -- A potential function, use potentials.py to generate.
     '''
     def __init__(self, unique_id, model, neighbors=None, potential=None, opinions=None):
         self.unique_id = unique_id
@@ -20,8 +24,10 @@ class OpinionParameters():
 class OpinionAgent(Agent):
     '''
     An agent has an opinion, and is inlfuenced by other agent\'s 
-    opinions based off a potential energy function. For now, initial 
-    opinion of an agent is random
+    opinions based off a potential energy function.
+
+    Keyword arguments:
+    params -- An instance of OpinionParameters.
     '''
     #Params is an instance of OpinionParameters
     def __init__(self, params):
@@ -38,13 +44,13 @@ class OpinionAgent(Agent):
         1 to k represents all neighbors.
         '''
         # This calculates the next opinion based off the formula
-        for other in self.neighbors: #Other is just a number.
+        for other in self.neighbors: #Other is an index.
             for i in range(len(self.opinions)):
                 difference = self.opinions[i] - self.model.schedule.agents[other].opinions[i]
                 if difference == 0:
                     pass
                 else:
-                    #The negative is in the potential function now.
+                    #The negative is in the potential function.
                     self.nextOpinion[i] += (self.model.ALPHA / 2) * self.potential(self, self.model.schedule.agents[other], i) * (difference / abs(difference))
                 # Clamp function
                 if self.nextOpinion[i] > 1:
@@ -54,7 +60,6 @@ class OpinionAgent(Agent):
     def advance(self):
         for i in range(len(self.opinions)):
             self.opinions[i] = self.nextOpinion[i]
-            #We don't need to change nextOpinion[i], it is inconsequential. We could make it None so that exceptions would be raised if it was attempted to be used or hadn't been set. 
 
 class OpinionModel(Model):
     '''
@@ -81,9 +86,6 @@ class OpinionModel(Model):
         self.schedule = SimultaneousActivation(self)
         #Create agents
         for i in range(self.num_agents):
-            #TODO Remove below 2 comments, after new neighborhood method works.
-            #neighbors = [random.randint(0, N-1) for i in range((N + 3) // 4)]
-            #neighbors = [i for i in range(N)]
             a_params = OpinionParameters(i, self, self.neighborhoods[i], self.potentials[i], initial_opinions[i])
             a = OpinionAgent(a_params)
             self.schedule.add(a)
@@ -97,7 +99,9 @@ class OpinionModel(Model):
         )
         
     def step(self):
-        '''Advance the model one step'''
+        '''
+        Advance the model one step
+        '''
         self.datacollector.collect(self)
         self.schedule.step()
 
