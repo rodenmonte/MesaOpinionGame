@@ -62,8 +62,16 @@ class OpinionModel(Model):
 
     Keyword arguments:
     N -- Number of agents
-    neighborhoods -- An NxN matrix.
-    neighborhoods[n] is agent n's list of neighbors.
+
+    neighborhoods -- An NxX matrix.
+    neighborhoods[a] is agent a's list of neighbors.
+    The neighborhoods is not actually a matrix.
+    Each inner list may be of different length.
+
+    intial_opinions -- This is a list size N of opinions.
+    Each inner list must have the same length, the opinions
+    are then labeled Opinion0, Opinion1, ..., OpinionZ.
+
     LIMITATION: Every agent has the same number of opinions,
     although an agent can be such that all other agents take
     no stake in its opinion, and its potential function is such
