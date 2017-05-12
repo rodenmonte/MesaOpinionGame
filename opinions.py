@@ -62,35 +62,29 @@ class OpinionModel(Model):
 
     Keyword arguments:
     N -- Number of agents
-
     neighborhoods -- An NxX matrix.
     neighborhoods[a] is agent a's list of neighbors.
     The neighborhoods is not actually a matrix.
     Each inner list may be of different length.
-
     intial_opinions -- This is a list size N of opinions.
     Each inner list must have the same length, the opinions
     are then labeled Opinion0, Opinion1, ..., OpinionZ.
-
-    LIMITATION: Every agent has the same number of opinions,
-    although an agent can be such that all other agents take
-    no stake in its opinion, and its potential function is such
-    that its opinion does not change.... Not sure how to work
-    around this, given how the data collector must be initialized
-    for multiple opinions.
+    potentials -- Potentials is a 1-D list of functions
+    Each function describes how agents are influenced by innodes.
     '''
-    def __init__(self, N, neighborhoods, initial_opinions):
+    def __init__(self, N, neighborhoods, initial_opinions, potentials):
         self.ALPHA = .001
         self.num_agents = N
         self.neighborhoods = neighborhoods
         self.initial_opinions = initial_opinions
+        self.potentials = potentials
         self.schedule = SimultaneousActivation(self)
         #Create agents
         for i in range(self.num_agents):
             #TODO Remove below 2 comments, after new neighborhood method works.
             #neighbors = [random.randint(0, N-1) for i in range((N + 3) // 4)]
             #neighbors = [i for i in range(N)]
-            a_params = OpinionParameters(i, self, self.neighborhoods[i], potentials.tent(.5), initial_opinions[i])
+            a_params = OpinionParameters(i, self, self.neighborhoods[i], self.potentials[i], initial_opinions[i])
             a = OpinionAgent(a_params)
             self.schedule.add(a)
 

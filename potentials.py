@@ -86,12 +86,11 @@ def simple():
         return -1
     return impl
 
-##def french():
-##    '''
-#    '''
-#    def impl(agent1, agent2, i):
-#        #The number of indegrees IS agent.neighbors.
-#        #This is passed in as k.
-#        if agent1_opinion == agent2_opinion
-#
-#
+def french():
+    def impl(agent1, agent2, i):
+        k = len(agent1.neighbors)
+        if(agent1.unique_id == agent2.unique_id):
+            return k * agent1.opinions[i] / (k + 1)
+        else:
+            return -1 * agent2.opinions[i] / (k + 1)
+    return impl

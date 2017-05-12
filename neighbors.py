@@ -1,16 +1,22 @@
 import numpy as np
-def totally_connected(N):
+def totally_connected(N, self_connected=False):
     '''
     Returns an nxn matrix.
     
     Keyword arguments:
     N -- the number of nodes in the network
+    self_connected -- If a node is self connected, it will
+    be in its own neighbors matrix.
     '''
     neighborhood = []
     for i in range(N):
         neighbors = []
         for j in range(N):
+            #We don't necesarrily want self-reference.
             if(i != j):
+                neighbors.append(j)
+            #BUT if we do want self-reference:
+            elif(self_connected):
                 neighbors.append(j)
         neighborhood.append(neighbors)
     return neighborhood
