@@ -51,7 +51,7 @@ class OpinionAgent(Agent):
                     pass
                 else:
                     #The negative is in the potential function now.
-                    self.nextOpinion[i] += (self.model.ALPHA / 2) * self.potential(abs(difference)) * (difference / abs(difference))
+                    self.nextOpinion[i] += (self.model.ALPHA / 2) * self.potential(self.opinions[i], self.model.schedule.agents[other].opinions[i]) * (difference / abs(difference))
                 # Clamp function
                 if self.nextOpinion[i] > 1:
                     self.nextOpinion[i] = 1

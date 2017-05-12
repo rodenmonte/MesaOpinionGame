@@ -17,7 +17,8 @@ def tent(tau_l=.5, tau_u=None):
         tau_u = tau_l
         tau_l = temp
 
-    def impl(diff):
+    def impl(agent1_opinion, agent2_opinion):
+        diff = abs(agent1_opinion - agent2_opinion)
         if(diff < tau_l): #Left half of the potential function.
             return -1 * (1 / tau_l) #Rise over run, times -1, because its a potential function.
         elif(diff > tau_u):
@@ -30,7 +31,8 @@ def bcm(tau):
     '''
     As in 3.5.4 of the paper.
     '''
-    def impl(diff):
+    def impl(agent1_opinion, agent2_opinion):
+        diff = abs(agent1_opinion, agent2_opinion)
         if(diff <= tau):
             return 2 * diff
         else:
@@ -39,12 +41,15 @@ def bcm(tau):
 
 def gaussian(mean=.5, stddev=.5):
     #Recall the gaussian is: (1 / (u * sqrt( 2 * pi)) * e ^ (- x^2 / (2 * u^2)), and we care about its derivative in terms of x (the mean), which gives its graphical slope. 
-    def impl(diff):
+    def impl(agent1_opinion, agent2_opinion):
+        diff = abs(agent1_opinion - agent2_opinion)
         return 1 * (diff - mean) / (pow(stddev, 3) * sqrt(2 * pi)) * pow(e, -1 * pow(diff - mean, 2) / (2 * pow(stddev, 2)))
     return impl
 
 def simple():
-    def impl(diff=0): #Default parameter here, because it has no effect. If someone decides not to use a parameter in this case, it won't break their code. A function is returned only to maintain form with the other potential functions
+    def impl(agent1_opinion=None, agent2_opinion=None):
+        '''
+        Note the parameters have no effect.
+        '''
         return -1
     return impl
-
