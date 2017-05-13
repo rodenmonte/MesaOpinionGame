@@ -64,18 +64,16 @@ class OpinionAgent(Agent):
 
     def advance(self):
         #Coupling
-        for others in self.neighbors:
-            #note that coupling is only affected by a node's own opinions.
-            changes = [0 for i in self.opinions]
-            for i in range(len(self.opinions)):
-                for j in range(len(self.opinions)):
-                    #o[i]^t+1 += 1/c_ji * change_in(o[j] ^t).
-                    change_in_opinion = self.nextOpinion[j] - self.opinions[j]
-                    changes[i] += 1 / self.model.coupling[j][i] * change_in_opinion
-            #Differences will change if opinions aren't updated afterwards...
-            for i in range(len(self.opinions)):
-                self.nextOpinion[i] += changes[i]
-                self.nextOpinion[i] = clamp(self.nextOpinion[i])
+        changes = [0 for i in self.opinions]
+        for i in range(len(self.opinions)):
+            for j in range(len(self.opinions)):
+                #o[i]^t+1 += 1/c_ij * change_in(o[j] ^t).
+                change_in_opinion = self.nextOpinion[j] - self.opinions[j]
+                changes[i] += self.model.coupling[i][j] * change_in_opinion
+        #Differences will change if opinions aren't updated afterwards...
+        for i in range(len(self.opinions)):
+            self.nextOpinion[i] += changes[i]
+            self.nextOpinion[i] = clamp(self.nextOpinion[i])
 
 
         #Updating

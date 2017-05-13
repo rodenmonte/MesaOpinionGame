@@ -25,11 +25,12 @@ def tent(tau_l=.5, tau_u=.5):
         tau_l = 0
 
     #If only one tent peak is wanted
-    if(tau_u == None):
+    #Note that we must use 'is' which is an identity comparison, not ==.
+    if(tau_u is None):
         tau_u = tau_l
     #This case arises if the function is not properly initialized
     #The fix just switches the points of the plateau
-    elif(tau_u > tau_l):
+    elif(tau_l > tau_u):
         temp = tau_u
         tau_u = tau_l
         tau_l = temp
@@ -66,7 +67,20 @@ def bcm(tau):
     return impl
 
 def gaussian(mean=.5, stddev=.5):
+    '''
+    Returns a function returning the derivative of the gaussian at
+    the difference of two agents' opinion i. The default values
+    approximately match the curve given in 3.5 of the paper.
+
+    Keyword arguments:
+    mean -- the mean used to construct a gaussian, defaulted to .5, as
+    that makes sense in the context of the model
+    stddev -- the standard deviation used to construct the model Based on
+    tested values, .5 makes sense as a default value, as it yields a slopes
+    of ~-1 and ~1 at differences of 0 and 1 respectively. Obviously, a
+    difference of value = mean yields derivative 0.
     #Recall the gaussian is: (1 / (u * sqrt( 2 * pi)) * e ^ (- x^2 / (2 * u^2)), and we care about its derivative in terms of x (the mean), which gives its graphical slope. 
+    '''
     def impl(agent1, agent2, i):
         diff = abs(agent1.opinions[i] - agent2.opinions[i])
         return 1 * (diff - mean) / (pow(stddev, 3) * sqrt(2 * pi)) * pow(e, -1 * pow(diff - mean, 2) / (2 * pow(stddev, 2)))
@@ -78,6 +92,7 @@ def simple():
     In a model without a noise function, this should always lead
     to consensus.
     '''
+
     def impl(agent1, agent2, i):
         '''
         Note the parameters have no effect, but are there to maintain
@@ -86,7 +101,24 @@ def simple():
         return -1
     return impl
 
+def flat():
+    '''
+    Returns a function always returning 0.
+    May be useful for tests.
+    '''
+    def impl(a1, a2, i):
+        return 0;
+    return impl
+
+
+
 def french():
+    '''
+    As in the paper. If other parameters are adjusted accordingly,
+    this will yield the update rule:
+    o_i^(t+1) = 1/(k+1) * sum of innode opinions at time t.
+    This is explained on page 16/42 of the paper, or section 3.5.4.
+    '''
     def impl(agent1, agent2, i):
         k = len(agent1.neighbors)
         if(agent1.unique_id == agent2.unique_id):
@@ -97,7 +129,9 @@ def french():
 
 def degroot(P):
     '''
-    Returns a potential function.
+    Returns a potential function. See section 3.5.4.
+
+    Keyword arguments:
     P -- NxN matrix of "weights". 
     '''
     def impl(agent1, agent2, i):
