@@ -4,6 +4,14 @@ from mesa.datacollection import DataCollector
 import numpy as np
 import potentials
 
+def clamp(n):
+    if n > 1:
+        return 1
+    elif n < 0:
+        return 0
+    else:
+        return n
+
 class OpinionParameters():
     '''
     For organizational purposes
@@ -52,12 +60,25 @@ class OpinionAgent(Agent):
                 else:
                     #The negative is in the potential function.
                     self.nextOpinion[i] += (self.model.ALPHA / 2) * self.potential(self, self.model.schedule.agents[other], i) * (difference / abs(difference))
-                # Clamp function
-                if self.nextOpinion[i] > 1:
-                    self.nextOpinion[i] = 1
-                elif self.nextOpinion[i] < 0:
-                    self.nextOpinion[i] = 0
+                self.nextOpinion[i] = clamp(self.nextOpinion[i])
+
     def advance(self):
+        #Coupling
+        for others in self.neighbors:
+            #note that coupling is only affected by a node's own opinions.
+            changes = [0 for i in self.opinions]
+            for i in range(len(self.opinions)):
+                for j in range(len(self.opinions)):
+                    #o[i]^t+1 += 1/c_ji * change_in(o[j] ^t).
+                    change_in_opinion = self.nextOpinion[j] - self.opinions[j]
+                    changes[i] += 1 / self.model.coupling[j][i] * change_in_opinion
+            #Differences will change if opinions aren't updated afterwards...
+            for i in range(len(self.opinions)):
+                self.nextOpinion[i] += changes[i]
+                self.nextOpinion[i] = clamp(self.nextOpinion[i])
+
+
+        #Updating
         for i in range(len(self.opinions)):
             self.opinions[i] = self.nextOpinion[i]
 
@@ -76,13 +97,16 @@ class OpinionModel(Model):
     are then labeled Opinion0, Opinion1, ..., OpinionZ.
     potentials -- Potentials is a 1-D list of functions
     Each function describes how agents are influenced by innodes.
+    coupling -- AxA matrix, where A = |opinions|. Describes how
+    opinions affect each other.
     '''
-    def __init__(self, N, neighborhoods, initial_opinions, potentials):
+    def __init__(self, N, neighborhoods, initial_opinions, potentials, coupling):
         self.ALPHA = .001
         self.num_agents = N
         self.neighborhoods = neighborhoods
         self.initial_opinions = initial_opinions
         self.potentials = potentials
+        self.coupling = coupling
         self.schedule = SimultaneousActivation(self)
         #Create agents
         for i in range(self.num_agents):
