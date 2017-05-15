@@ -55,9 +55,7 @@ class OpinionAgent(Agent):
         for other in self.neighbors: #Other is an index.
             for i in range(len(self.opinions)):
                 difference = self.opinions[i] - self.model.schedule.agents[other].opinions[i]
-                if difference == 0:
-                    pass
-                else:
+                if difference != 0: #Avoid division by 0.
                     #The negative is in the potential function.
                     self.nextOpinion[i] += (self.model.ALPHA / 2) * self.potential(self, self.model.schedule.agents[other], i) * (difference / abs(difference))
                 self.nextOpinion[i] = clamp(self.nextOpinion[i])
@@ -74,8 +72,6 @@ class OpinionAgent(Agent):
         for i in range(len(self.opinions)):
             self.nextOpinion[i] = changes[i] + self.opinions[i]
             self.nextOpinion[i] = clamp(self.nextOpinion[i])
-
-
         #Updating
         for i in range(len(self.opinions)):
             self.opinions[i] = self.nextOpinion[i]

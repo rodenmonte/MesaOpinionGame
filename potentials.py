@@ -144,6 +144,10 @@ def degroot(P):
     return impl
 
 def simple2():
+    '''
+    Returns a function returning the negative of the difference
+    between two opinions
+    '''
     def impl(agent1, agent2, i):
         diff = abs(agent1.opinions[i] - agent2.opinions[i])
         return -1 * diff
