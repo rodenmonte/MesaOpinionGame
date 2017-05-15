@@ -72,7 +72,7 @@ class OpinionAgent(Agent):
                 changes[i] += self.model.coupling[i][j] * change_in_opinion
         #Differences will change if opinions aren't updated afterwards...
         for i in range(len(self.opinions)):
-            self.nextOpinion[i] += changes[i]
+            self.nextOpinion[i] = changes[i] + self.opinions[i]
             self.nextOpinion[i] = clamp(self.nextOpinion[i])
 
 
