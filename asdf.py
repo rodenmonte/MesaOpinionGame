@@ -1,9 +1,8 @@
 from mesa import Agent, Model
 from mesa.time import SimultaneousActivation
-from mesa.time import StagedActivation
+from mesa.time import Pairwsi
 from mesa.datacollection import DataCollector
 import numpy as np
-import random
 import potentials
 
 def clamp(n):
@@ -14,7 +13,29 @@ def clamp(n):
     else:
         return n
 
-class OpinionAgentParameters():
+class modelParameters():
+    '''
+    An object to be passed to opinionModel.
+
+    Keyword arguments:
+    N -- Number of agents
+    neighborhoods -- An NxX matrix.
+    neighborhoods[a] is agent a's list of neighbors.
+    The neighborhoods is not actually a matrix.
+    Each inner list may be of different length.
+    intial_opinions -- This is a list size N of opinions.
+    Each inner list must have the same length, the opinions
+    are then labeled Opinion0, Opinion1, ..., OpinionZ.
+    potentials -- Potentials is a 1-D list of functions
+    Each function describes how agents are influenced by innodes.
+    coupling -- AxA matrix, where A = |opinions|. Describes how
+    opinions affect each other.
+    '''
+    def __init__(self, num_agents, neighborhoods, initial_opinions, potentials, coupling):
+        self.num_agents = num_agents
+        self.n
+
+class agentParameters():
     '''
     For organizational purposes
 
@@ -31,43 +52,7 @@ class OpinionAgentParameters():
         self.potential = potential
         self.opinions = opinions
 
-class OpinionAgentPairwise(Agent):
-    '''
-    '''
-    def __init__(self, params):
-        super().__init__(params.unique_id, params.model)
-        self.opinions = [op for op in params.opinions]
-        self.nextOpinion = [op for op in params.opinions]
-        self.neighbors = params.neighbors
-        self.potential = params.potential
-        self.interacted = False
-    def reset(self):
-        self.interacted = False
-    def step(self):
-        if self.interacted:
-            return
-        
-        random.shuffle(self.neighbors)
-        #Select a neighbor to interact with:
-        for other in self.neighbors:
-            other_agent = self.neighbors[other]
-            if self.model.schedule.agents[other_agent].unique_id == self.unique_id:
-                continue #In this instance, an agent can't interact with itself. Change this line to break if other behavior's desired.
-            if self.model.schedule.agents[other_agent].interacted:
-                continue
-            break
-        else:
-            #nobody to interact w/
-            self.interacted = True
-            return
-        
-        #Modifications can be made for coupling...
-        for i in range(len(self.opinions)):
-            difference = self.opinions[i] - self.model.schedule.agents[other_agent].opinions[i]
-            self.opinions[i] += (self.model.ALPHA / 2) * self.potential(self, self.model.schedule.agents[other_agent], i) * (difference / (abs(difference) + .0001)) #Replace small number with EPSILON constant later
-            self.opinions[i] = clamp(self.opinions[i])
-
-class OpinionAgentSimultaneous(Agent):
+class OpinionAgent(Agent):
     '''
     An agent has an opinion, and is inlfuenced by other agent\'s 
     opinions based off a potential energy function.
@@ -118,40 +103,19 @@ class OpinionModel(Model):
     '''
     A model with some number of agents
 
-    Keyword arguments:
-    N -- Number of agents
-    neighborhoods -- An NxX matrix.
-    neighborhoods[a] is agent a's list of neighbors.
-    The neighborhoods is not actually a matrix.
-    Each inner list may be of different length.
-    intial_opinions -- This is a list size N of opinions.
-    Each inner list must have the same length, the opinions
-    are then labeled Opinion0, Opinion1, ..., OpinionZ.
-    potentials -- Potentials is a 1-D list of functions
-    Each function describes how agents are influenced by innodes.
-    coupling -- AxA matrix, where A = |opinions|. Describes how
-    opinions affect each other.
     '''
-    def __init__(self, N, neighborhoods, initial_opinions, potentials, coupling, schedule="simultaneous"):
+    def __init__(self, params):
         self.ALPHA = .001
         self.num_agents = N
         self.neighborhoods = neighborhoods
         self.initial_opinions = initial_opinions
         self.potentials = potentials
         self.coupling = coupling
-        
-        #Set schedule
-        if schedule == 'simultaneous':
-            self.schedule = SimultaneousActivation(self)
-        elif schedule == 'pairwise':
-            self.schedule = StagedActivation(self, stage_list=["reset", "step"], shuffle=True)
+        self.schedule = SimultaneousActivation(self)
         #Create agents
         for i in range(self.num_agents):
             a_params = OpinionAgentParameters(i, self, self.neighborhoods[i], self.potentials[i], initial_opinions[i])
-            if schedule == 'simultaneous':
-                a = OpinionAgentSimultaneous(a_params)
-            elif schedule == 'pairwise':
-                a = OpinionAgentPairwise(a_params)
+            a = OpinionAgent(a_params)
             self.schedule.add(a)
 
         ag_reps = dict()
