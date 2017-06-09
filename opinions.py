@@ -5,6 +5,7 @@ from mesa.datacollection import DataCollector
 import numpy as np
 import random
 import potentials
+import math
 
 def clamp(n):
     if n > 1:
@@ -24,65 +25,67 @@ class OpinionAgentParameters():
     neighbors -- A 2d array, size NxAny, use neighbors.py to generate.
     potential -- A potential function, use potentials.py to generate.
     '''
-    def __init__(self, unique_id, model, neighbors=None, potential=None, opinions=None):
+    def __init__(self, unique_id, model, neighbors=None, potential=None, opinions=None, noiseStrength=0.001):
         self.unique_id = unique_id
         self.model = model
         self.neighbors = neighbors
         self.potential = potential
         self.opinions = opinions
+        self.noiseStrength = noiseStrength
 
-class OpinionAgentPairwise(Agent):
-    '''
-    '''
-    def __init__(self, params):
-        super().__init__(params.unique_id, params.model)
-        self.opinions = [op for op in params.opinions]
-        self.nextOpinion = [op for op in params.opinions]
-        self.neighbors = params.neighbors
-        self.potential = params.potential
-        self.interacted = False
-    def reset(self):
-        self.interacted = False
-    def step(self):
-        if self.interacted:
-            return
-        
-        random.shuffle(self.neighbors)
-        #Select a neighbor to interact with:
-        for other in self.neighbors:
-            other_agent = self.neighbors[other]
-            if self.model.schedule.agents[other_agent].unique_id == self.unique_id:
-                continue #In this instance, an agent can't interact with itself. Change this line to break if other behavior's desired.
-            if self.model.schedule.agents[other_agent].interacted:
-                continue
-            break
-        else:
-            #nobody to interact w/
-            self.interacted = True
-            return
-        
-        #Modifications can be made for coupling...
-        for i in range(len(self.opinions)):
-            difference = self.opinions[i] - self.model.schedule.agents[other_agent].opinions[i]
-            self.opinions[i] += (self.model.ALPHA / 2) * self.potential(self, self.model.schedule.agents[other_agent], i) * (difference / (abs(difference) + .0001)) #Replace small number with EPSILON constant later
-            self.opinions[i] = clamp(self.opinions[i])
-
-class OpinionAgentSimultaneous(Agent):
+class OpinionAgent(Agent):
     '''
     An agent has an opinion, and is inlfuenced by other agent\'s 
     opinions based off a potential energy function.
 
     Keyword arguments:
-    params -- An instance of OpinionAgentParameters.
+    params -- An instance of OpinionAgentParameters
     '''
-    #Params is an instance of OpinionAgentParameters
     def __init__(self, params):
         super().__init__(params.unique_id, params.model)
         self.opinions = [op for op in params.opinions]
         self.nextOpinion = [op for op in params.opinions]
         self.neighbors = params.neighbors
         self.potential = params.potential
-    def step(self):
+        self.interacted = False
+        self.noiseStrength = params.noiseStrength
+    
+    def reset(self):
+        self.interacted = False
+        for i in range(len(self.opinions)):
+            self.opinions[i] = self.nextOpinion[i]
+    def pairwiseStep(self):
+        if self.interacted:
+            return
+        
+        neighbors_copy = [neighb for neighb in self.neighbors]
+        neighbors_copy_len = len(neighbors_copy)
+        while neighbors_copy: #is not []
+            rand_index = np.random.randint(0, neighbors_copy_len) #THIS IS SLOW CODE
+            other_agent = self.neighbors[rand_index]
+            neighbors_copy.pop(rand_index)
+            neighbors_copy_len -= 1
+            if self.model.schedule.agents[other_agent].unique_id == self.unique_id:
+                continue
+            if self.model.schedule.agents[other_agent].interacted:
+                continue
+            break
+        else:
+            self.interacted = True
+            return
+
+        for i in range(len(self.opinions)):
+            difference = self.opinions[i] - self.model.schedule.agents[other_agent].opinions[i]
+            self.nextOpinion[i] += (self.model.ALPHA / 2) * self.potential(self, self.model.schedule.agents[other_agent], i) * (difference / (abs(difference) + .0001)) #Replace small number with EPSILON constant later
+            #change the other agent's opinion too!
+            self.model.schedule.agents[other_agent].nextOpinion[i] -= (self.model.ALPHA / 2) * self.model.schedule.agents[other_agent].potential(self, self.model.schedule.agents[other_agent], i) * (difference / (abs(difference) + .0001))
+
+            self.model.schedule.agents[other_agent].nextOpinion[i] = clamp(self.model.schedule.agents[other_agent].nextOpinion[i])
+            self.nextOpinion[i] = clamp(self.nextOpinion[i])
+            self.model.schedule.agents[other_agent].interacted = True
+            self.interacted = True
+
+    def simultaneousStep(self):
         '''
         Calculates next opinion based off of all other agent's
         opinions. Models a totally connected graph.
@@ -98,7 +101,11 @@ class OpinionAgentSimultaneous(Agent):
                     self.nextOpinion[i] += (self.model.ALPHA / 2) * self.potential(self, self.model.schedule.agents[other], i) * (difference / abs(difference))
                 self.nextOpinion[i] = clamp(self.nextOpinion[i])
 
-    def advance(self):
+    def simultaneousAdvance(self):
+        for i in range(len(self.opinions)):
+            self.opinions[i] = self.nextOpinion[i]
+
+    def coupling(self):
         #Coupling
         changes = [0 for i in self.opinions]
         for i in range(len(self.opinions)):
@@ -110,9 +117,15 @@ class OpinionAgentSimultaneous(Agent):
         for i in range(len(self.opinions)):
             self.nextOpinion[i] = changes[i] + self.opinions[i]
             self.nextOpinion[i] = clamp(self.nextOpinion[i])
-        #Updating
+
+    def noise(self):
         for i in range(len(self.opinions)):
-            self.opinions[i] = self.nextOpinion[i]
+            noise_size = 0
+            for j in range(len(self.neighbors)):
+                noise_size += pow(math.e, -1 * (self.opinions[i] - self.model.schedule.agents[j].opinions[i]))
+            noise_size = self.noiseStrength * noise_size
+            self.nextOpinion[i] += np.random.normal(0, noise_size)
+            self.nextOpinion[i] = clamp(self.nextOpinion[i])
 
 class OpinionModel(Model):
     '''
@@ -142,16 +155,17 @@ class OpinionModel(Model):
         
         #Set schedule
         if schedule == 'simultaneous':
-            self.schedule = SimultaneousActivation(self)
+            self.schedule = StagedActivation(self, stage_list=["simultaneousStep", "simultaneousAdvance"], shuffle=False)
         elif schedule == 'pairwise':
-            self.schedule = StagedActivation(self, stage_list=["reset", "step"], shuffle=True)
+            self.schedule = StagedActivation(self, stage_list=["reset", "pairwiseStep", "coupling", "noise"], shuffle=True)
+
         #Create agents
         for i in range(self.num_agents):
             a_params = OpinionAgentParameters(i, self, self.neighborhoods[i], self.potentials[i], initial_opinions[i])
             if schedule == 'simultaneous':
-                a = OpinionAgentSimultaneous(a_params)
+                a = OpinionAgent(a_params)
             elif schedule == 'pairwise':
-                a = OpinionAgentPairwise(a_params)
+                a = OpinionAgent(a_params)
             self.schedule.add(a)
 
         ag_reps = dict()
