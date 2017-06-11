@@ -58,10 +58,12 @@ class OpinionAgent(Agent):
         if self.interacted:
             return
         
-        neighbors_copy = [neighb for neighb in self.neighbors]
+        #neighbors_copy is all neighbors not interacted with and not oneself.
+        neighbors_copy = [neighb for neighb in self.neighbors if not self.model.schedule.agents[neighb].interacted and self.model.schedule.agents[neighb].unique_id != self.unique_id]
         neighbors_copy_len = len(neighbors_copy)
+        '''
         while neighbors_copy: #is not []
-            rand_index = np.random.randint(0, neighbors_copy_len) #THIS IS SLOW CODE
+            rand_index = np.random.randint(0, neighbors_copy_len) 
             other_agent = self.neighbors[rand_index]
             neighbors_copy.pop(rand_index)
             neighbors_copy_len -= 1
@@ -70,10 +72,14 @@ class OpinionAgent(Agent):
             if self.model.schedule.agents[other_agent].interacted:
                 continue
             break
-        else:
+        '''
+        if not neighbors_copy: #neighbors_copy is of length 0.
             self.interacted = True
             return
-
+        
+        rand_index = np.random.randint(0, neighbors_copy_len) 
+        other_agent = self.neighbors[rand_index]
+        
         for i in range(len(self.opinions)):
             difference = self.opinions[i] - self.model.schedule.agents[other_agent].opinions[i]
             self.nextOpinion[i] += (self.model.ALPHA / 2) * self.potential(self, self.model.schedule.agents[other_agent], i) * (difference / (abs(difference) + .0001)) #Replace small number with EPSILON constant later
@@ -157,7 +163,8 @@ class OpinionModel(Model):
         if schedule == 'simultaneous':
             self.schedule = StagedActivation(self, stage_list=["simultaneousStep", "simultaneousAdvance"], shuffle=False)
         elif schedule == 'pairwise':
-            self.schedule = StagedActivation(self, stage_list=["reset", "pairwiseStep", "coupling", "noise"], shuffle=True)
+            self.schedule = StagedActivation(self, stage_list=["reset", "pairwiseStep"], shuffle=True)
+            #stage_list is where you add "coupling" and "noise". 
 
         #Create agents
         for i in range(self.num_agents):
