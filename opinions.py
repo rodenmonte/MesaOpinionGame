@@ -25,13 +25,14 @@ class OpinionAgentParameters():
     neighbors -- A 2d array, size NxAny, use neighbors.py to generate.
     potential -- A potential function, use potentials.py to generate.
     '''
-    def __init__(self, unique_id, model, neighbors=None, potential=None, opinions=None, noiseStrength=0.001):
+    def __init__(self, unique_id, model, neighbors=None, weights=None, potential=None, opinions=None, noiseStrength=0.001):
         self.unique_id = unique_id
         self.model = model
         self.neighbors = neighbors
         self.potential = potential
         self.opinions = opinions
         self.noiseStrength = noiseStrength
+        self.weights = weights
 
 class OpinionAgent(Agent):
     '''
@@ -49,6 +50,11 @@ class OpinionAgent(Agent):
         self.potential = params.potential
         self.interacted = False
         self.noiseStrength = params.noiseStrength
+        if not params.weights:
+            self.weights = [1 for i in range(self.model.num_agents)]
+        else: 
+            self.weights = [1 for i in range(self.model.num_agents)]
+            #self.weights = params.weights
     
     def reset(self):
         self.interacted = False
@@ -82,8 +88,9 @@ class OpinionAgent(Agent):
         
         for i in range(len(self.opinions)):
             difference = self.opinions[i] - self.model.schedule.agents[other_agent].opinions[i]
-            self.nextOpinion[i] += (self.model.ALPHA / 2) * self.potential(self, self.model.schedule.agents[other_agent], i) * (difference / (abs(difference) + .0001)) #Replace small number with EPSILON constant later
-            #change the other agent's opinion too!
+            #self.weights[other_agent] 
+            self.nextOpinion[i] += (self.weights[other_agent] * self.model.ALPHA / 2) * self.potential(self, self.model.schedule.agents[other_agent], i) * (difference / (abs(difference) + .0001)) #Replace small number with EPSILON constant later
+            #self.model.schedule.agents[other_agent].weights[0] 
             self.model.schedule.agents[other_agent].nextOpinion[i] -= (self.model.ALPHA / 2) * self.model.schedule.agents[other_agent].potential(self, self.model.schedule.agents[other_agent], i) * (difference / (abs(difference) + .0001))
 
             self.model.schedule.agents[other_agent].nextOpinion[i] = clamp(self.model.schedule.agents[other_agent].nextOpinion[i])
@@ -151,13 +158,18 @@ class OpinionModel(Model):
     coupling -- AxA matrix, where A = |opinions|. Describes how
     opinions affect each other.
     '''
-    def __init__(self, N, neighborhoods, initial_opinions, potentials, coupling, schedule="simultaneous"):
+    def __init__(self, N, neighborhoods, weights, initial_opinions, potentials, coupling, schedule="simultaneous"):
         self.ALPHA = .001
         self.num_agents = N
         self.neighborhoods = neighborhoods
         self.initial_opinions = initial_opinions
         self.potentials = potentials
         self.coupling = coupling
+
+        if not weights:
+            self.weights = [None for i in range(self.num_agents)]
+        else:
+            self.weights = weights
         
         #Set schedule
         if schedule == 'simultaneous':
@@ -168,7 +180,7 @@ class OpinionModel(Model):
 
         #Create agents
         for i in range(self.num_agents):
-            a_params = OpinionAgentParameters(i, self, self.neighborhoods[i], self.potentials[i], initial_opinions[i])
+            a_params = OpinionAgentParameters(i, self, self.neighborhoods[i], self.weights[i], self.potentials[i], initial_opinions[i])
             if schedule == 'simultaneous':
                 a = OpinionAgent(a_params)
             elif schedule == 'pairwise':
