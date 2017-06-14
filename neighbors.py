@@ -1,4 +1,22 @@
 import numpy as np
+from math import isclose
+def weight_to_neighbors(weights):
+    '''
+    Returns a neighborhood matrix from a weight matrix.
+    Weights close to 0 are ommitted.
+    A 2d array of weights is returned.
+
+    Keyword Arguments:
+    weights -- A 2D array of weights. weights must be square.
+    '''
+    neighborhood = []
+    for i in range(len(weights)):
+        neighbors = []
+        for j in range(len(weights[i])):
+            if not isclose(weights[i][j], 0.0):
+                neighbors.append(j)
+        neighborhood.append(neighbors)
+    return neighborhood
 def totally_connected(N, self_connected=False):
     '''
     Returns an nxn matrix.
