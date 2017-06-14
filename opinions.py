@@ -50,11 +50,10 @@ class OpinionAgent(Agent):
         self.potential = params.potential
         self.interacted = False
         self.noiseStrength = params.noiseStrength
-        if not params.weights:
-            self.weights = [1 for i in range(self.model.num_agents)]
+        if params.weights is not None:
+            self.weights = params.weights
         else: 
             self.weights = [1 for i in range(self.model.num_agents)]
-            #self.weights = params.weights
     
     def reset(self):
         self.interacted = False
@@ -67,18 +66,7 @@ class OpinionAgent(Agent):
         #neighbors_copy is all neighbors not interacted with and not oneself.
         neighbors_copy = [neighb for neighb in self.neighbors if not self.model.schedule.agents[neighb].interacted and self.model.schedule.agents[neighb].unique_id != self.unique_id]
         neighbors_copy_len = len(neighbors_copy)
-        '''
-        while neighbors_copy: #is not []
-            rand_index = np.random.randint(0, neighbors_copy_len) 
-            other_agent = self.neighbors[rand_index]
-            neighbors_copy.pop(rand_index)
-            neighbors_copy_len -= 1
-            if self.model.schedule.agents[other_agent].unique_id == self.unique_id:
-                continue
-            if self.model.schedule.agents[other_agent].interacted:
-                continue
-            break
-        '''
+
         if not neighbors_copy: #neighbors_copy is of length 0.
             self.interacted = True
             return
@@ -91,7 +79,7 @@ class OpinionAgent(Agent):
             #self.weights[other_agent] 
             self.nextOpinion[i] += (self.weights[other_agent] * self.model.ALPHA / 2) * self.potential(self, self.model.schedule.agents[other_agent], i) * (difference / (abs(difference) + .0001)) #Replace small number with EPSILON constant later
             #self.model.schedule.agents[other_agent].weights[0] 
-            self.model.schedule.agents[other_agent].nextOpinion[i] -= (self.model.ALPHA / 2) * self.model.schedule.agents[other_agent].potential(self, self.model.schedule.agents[other_agent], i) * (difference / (abs(difference) + .0001))
+            self.model.schedule.agents[other_agent].nextOpinion[i] -= (self.model.schedule.agents[other_agent].weights[self.unique_id] * self.model.ALPHA / 2) * self.model.schedule.agents[other_agent].potential(self, self.model.schedule.agents[other_agent], i) * (difference / (abs(difference) + .0001))
 
             self.model.schedule.agents[other_agent].nextOpinion[i] = clamp(self.model.schedule.agents[other_agent].nextOpinion[i])
             self.nextOpinion[i] = clamp(self.nextOpinion[i])
@@ -166,7 +154,7 @@ class OpinionModel(Model):
         self.potentials = potentials
         self.coupling = coupling
 
-        if not weights:
+        if weights is None:
             self.weights = [None for i in range(self.num_agents)]
         else:
             self.weights = weights
