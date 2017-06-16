@@ -2,6 +2,7 @@ from mesa import Agent, Model
 from mesa.time import SimultaneousActivation
 from mesa.time import StagedActivation
 from mesa.datacollection import DataCollector
+import scipy.stats as ss
 import numpy as np
 import random
 import potentials
@@ -121,12 +122,21 @@ class OpinionAgent(Agent):
 
     def noise(self):
         for i in range(len(self.opinions)):
+            a = 0
+            for other in self.neighbors:
+                diff = self.opinions[i] - self.model.schedule.agents[other].opinions[i]
+                a += diff
+            self.nextOpinion[i] += ss.skewnorm.rvs(a, 0, self.noiseStrength) 
+            self.nextOpinion[i] = clamp(self.nextOpinion[i])
+
+            '''
             noise_size = 0
             for j in range(len(self.neighbors)):
                 noise_size += pow(math.e, -1 * (self.opinions[i] - self.model.schedule.agents[j].opinions[i]))
             noise_size = self.noiseStrength * noise_size
             self.nextOpinion[i] += np.random.normal(0, noise_size)
             self.nextOpinion[i] = clamp(self.nextOpinion[i])
+            '''
 
 class OpinionModel(Model):
     '''
@@ -163,7 +173,7 @@ class OpinionModel(Model):
         if schedule == 'simultaneous':
             self.schedule = StagedActivation(self, stage_list=["simultaneousStep", "simultaneousAdvance"], shuffle=False)
         elif schedule == 'pairwise':
-            self.schedule = StagedActivation(self, stage_list=["reset", "pairwiseStep"], shuffle=True)
+            self.schedule = StagedActivation(self, stage_list=["reset", "pairwiseStep", "noise"], shuffle=True)
             #stage_list is where you add "coupling" and "noise". 
 
         #Create agents
