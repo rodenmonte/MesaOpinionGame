@@ -7,7 +7,7 @@ import numpy as np
 
 no_coupling(n):
     '''
-    Returns an nxn matrix of 0's.
+    Returns the identity matrix, size n.
 
     Keyword argument:
     n -- The number of opinions in a system, and the size of the coupling matrix.
@@ -16,7 +16,10 @@ no_coupling(n):
     for i in range(n):
         inner = []
         for j in range(n):
-            inner.append(0)
+            if i == j:
+                inner.append(1)
+            else:
+                inner.append(0)
         coupling.append(inner)
     return coupling
 

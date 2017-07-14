@@ -1,4 +1,5 @@
 import numpy as np
+import networkx as nx
 from math import isclose
 def weight_to_neighbors(weights):
     '''
@@ -76,8 +77,27 @@ def degree_connected(N, degree):
         current_connections += average_connections
     return neighborhood
 
-#TODO cluster_connected
-#Takes 3 parameters, N, degree, and n_clusters
-#degree is the degree of connection BETWEEN CLUSTERS.
-#n_clusters is the number of clusters.
-#Perhaps it is as easy as a combination of the previous two methods?
+def graph_to_matrix(g):
+    '''
+    Converts a networkx graph into a list of lists. Doesn't preserve weight.
+
+    Keyword arguments:
+    g -- A networkx graph.
+    '''
+    matrix = []
+    new_graph = nx.to_dict_of_lists(g)
+    for i in range(len(new_graph)):
+        matrix.append(new_graph[i])
+    return matrix
+
+def matrix_to_graph(m):
+    '''
+    Takes a neighbordhood matrix m and converts it to a networkx graph.
+
+    Keyword arguments:
+    m -- An nxn neighborhood matrix.
+    '''
+    graph_dict = {}
+    for i in range(len(m)):
+        graph_dict[i] = m[i]
+    return nx.from_dict_of_lists(graph_dict)

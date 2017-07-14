@@ -1,0 +1,177 @@
+************* Module opinions
+C: 74, 0: Line too long (118/100) (line-too-long)
+C: 76, 0: Line too long (115/100) (line-too-long)
+C: 81, 0: Trailing whitespace (trailing-whitespace)
+C: 84, 0: Trailing whitespace (trailing-whitespace)
+C: 87, 0: Trailing whitespace (trailing-whitespace)
+C: 88, 0: Line too long (245/100) (line-too-long)
+C: 89, 0: Trailing whitespace (trailing-whitespace)
+C: 90, 0: Line too long (303/100) (line-too-long)
+C: 91, 0: Line too long (130/100) (line-too-long)
+C:100, 0: Line too long (146/100) (line-too-long)
+C:109, 0: Line too long (159/100) (line-too-long)
+C:133, 0: Trailing whitespace (trailing-whitespace)
+C:141, 0: Trailing whitespace (trailing-whitespace)
+C:148, 0: Line too long (110/100) (line-too-long)
+C:172, 0: Line too long (115/100) (line-too-long)
+C:184, 0: Trailing whitespace (trailing-whitespace)
+C:187, 0: Line too long (121/100) (line-too-long)
+C:189, 0: Line too long (111/100) (line-too-long)
+C:194, 0: Line too long (135/100) (line-too-long)
+C:206, 0: No space allowed around keyword argument assignment
+            agent_reporters = ag_reps
+                            ^ (bad-whitespace)
+C:208, 0: Trailing whitespace (trailing-whitespace)
+R: 36, 4: Too many arguments (8/5) (too-many-arguments)
+R: 26, 0: Too few public methods (0/2) (too-few-public-methods)
+C: 57, 8: Invalid attribute name "nextOpinion" (invalid-name)
+C: 67, 4: Missing method docstring (missing-docstring)
+C: 71, 4: Invalid method name "pairwiseStep" (invalid-name)
+C: 71, 4: Missing method docstring (missing-docstring)
+E: 82,21: Module 'numpy.random' has no 'randint' member (no-member)
+C: 96, 4: Invalid method name "simultaneousStep" (invalid-name)
+C:112, 4: Invalid method name "simultaneousAdvance" (invalid-name)
+C:112, 4: Missing method docstring (missing-docstring)
+C:116, 4: Missing method docstring (missing-docstring)
+C:137,12: Invalid variable name "a" (invalid-name)
+C:140,16: Invalid variable name "a" (invalid-name)
+E:141,35: Module 'scipy.stats' has no 'skewnorm' member (no-member)
+W:152,-1: String statement has no effect (pointless-string-statement)
+C:173, 8: Invalid attribute name "ALPHA" (invalid-name)
+R:154, 0: Too many instance attributes (9/7) (too-many-instance-attributes)
+W:172, 4: __init__ method from base class 'Model' is not called (super-init-not-called)
+R:172, 4: Too many arguments (8/5) (too-many-arguments)
+C:196,16: Invalid variable name "a" (invalid-name)
+C:198,16: Invalid variable name "a" (invalid-name)
+C:216, 4: Missing method docstring (missing-docstring)
+W:217,12: Unused variable 'i' (unused-variable)
+C:220, 4: Invalid method name "makeLam" (invalid-name)
+R:220, 4: Method could be a function (no-self-use)
+W:  6, 0: Unused import math (unused-import)
+C:  6, 0: standard import "import math" comes before "import scipy.stats as ss" (wrong-import-order)
+
+
+Report
+======
+117 statements analysed.
+
+Statistics by type
+------------------
+
++---------+-------+-----------+-----------+------------+---------+
+|type     |number |old number |difference |%documented |%badname |
++=========+=======+===========+===========+============+=========+
+|module   |1      |1          |=          |100.00      |0.00     |
++---------+-------+-----------+-----------+------------+---------+
+|class    |3      |3          |=          |100.00      |0.00     |
++---------+-------+-----------+-----------+------------+---------+
+|method   |12     |12         |=          |58.33       |33.33    |
++---------+-------+-----------+-----------+------------+---------+
+|function |1      |1          |=          |100.00      |0.00     |
++---------+-------+-----------+-----------+------------+---------+
+
+
+
+External dependencies
+---------------------
+::
+
+    mesa (opinions)
+      \-datacollection (opinions)
+      \-time (opinions)
+    numpy (opinions)
+    scipy 
+      \-stats (opinions)
+
+
+
+Raw metrics
+-----------
+
++----------+-------+------+---------+-----------+
+|type      |number |%     |previous |difference |
++==========+=======+======+=========+===========+
+|code      |124    |53.91 |127      |-3.00      |
++----------+-------+------+---------+-----------+
+|docstring |73     |31.74 |73       |=          |
++----------+-------+------+---------+-----------+
+|comment   |13     |5.65  |12       |+1.00      |
++----------+-------+------+---------+-----------+
+|empty     |20     |8.70  |22       |-2.00      |
++----------+-------+------+---------+-----------+
+
+
+
+Duplication
+-----------
+
++-------------------------+------+---------+-----------+
+|                         |now   |previous |difference |
++=========================+======+=========+===========+
+|nb duplicated lines      |0     |0        |=          |
++-------------------------+------+---------+-----------+
+|percent duplicated lines |0.000 |0.000    |=          |
++-------------------------+------+---------+-----------+
+
+
+
+Messages by category
+--------------------
+
++-----------+-------+---------+-----------+
+|type       |number |previous |difference |
++===========+=======+=========+===========+
+|convention |37     |42       |-5.00      |
++-----------+-------+---------+-----------+
+|refactor   |5      |5        |=          |
++-----------+-------+---------+-----------+
+|warning    |4      |8        |-4.00      |
++-----------+-------+---------+-----------+
+|error      |2      |2        |=          |
++-----------+-------+---------+-----------+
+
+
+
+Messages
+--------
+
++-----------------------------+------------+
+|message id                   |occurrences |
++=============================+============+
+|line-too-long                |12          |
++-----------------------------+------------+
+|invalid-name                 |10          |
++-----------------------------+------------+
+|trailing-whitespace          |8           |
++-----------------------------+------------+
+|missing-docstring            |5           |
++-----------------------------+------------+
+|too-many-arguments           |2           |
++-----------------------------+------------+
+|no-member                    |2           |
++-----------------------------+------------+
+|wrong-import-order           |1           |
++-----------------------------+------------+
+|unused-variable              |1           |
++-----------------------------+------------+
+|unused-import                |1           |
++-----------------------------+------------+
+|too-many-instance-attributes |1           |
++-----------------------------+------------+
+|too-few-public-methods       |1           |
++-----------------------------+------------+
+|super-init-not-called        |1           |
++-----------------------------+------------+
+|pointless-string-statement   |1           |
++-----------------------------+------------+
+|no-self-use                  |1           |
++-----------------------------+------------+
+|bad-whitespace               |1           |
++-----------------------------+------------+
+
+
+
+Global evaluation
+-----------------
+Your code has been rated at 5.21/10 (previous run: 4.58/10, +0.63)
+
